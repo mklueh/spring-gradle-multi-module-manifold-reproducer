@@ -1,0 +1,3 @@
+rootProject.name = 'spring-gradle-multi-module-manifold-reproducer'
+
+include ":application"

@@ -1,0 +1,86 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'systems.manifold.manifold-gradle-plugin' version '0.0.2-alpha'
+
+}
+
+ext {
+    manifoldVersion = "2022.1.10"
+    junitVersion = "5.6.2"
+}
+
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
+
+    group = 'com.example'
+    version = '0.0.1-SNAPSHOT'
+
+    compileJava.options.encoding = 'UTF-8'
+    compileTestJava.options.encoding = 'UTF-8'
+
+    test {
+        useJUnitPlatform()
+    }
+
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'org.apache.logging.log4j') {
+                details.useVersion '2.15.0'
+            }
+        }
+    }
+
+    repositories {
+        jcenter() //old spring version is hosted here
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation "org.springframework.boot:spring-boot-starter"
+
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+
+        implementation "systems.manifold:manifold-csv-rt:${manifoldVersion}"
+        testImplementation "systems.manifold:manifold-csv-rt:${manifoldVersion}"
+        annotationProcessor "systems.manifold:manifold-csv:${manifoldVersion}"
+        testAnnotationProcessor "systems.manifold:manifold-csv:${manifoldVersion}"
+
+        testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    }
+
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += ['-Xplugin:Manifold']
+    }
+
+    configurations {
+        all {
+            //noinspection GroovyAssignabilityCheck
+            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        }
+
+        // give tests access to annotationProcessor dependencies
+        testImplementation.extendsFrom annotationProcessor
+    }
+
+}
+
+
+configurations {
+    // give tests access to annotationProcessor dependencies
+    //testImplementation.extendsFrom annotationProcessor
+}
